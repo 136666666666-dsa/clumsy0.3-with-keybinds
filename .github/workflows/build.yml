@@ -2,7 +2,7 @@ name: Build clumsy.exe
 
 on:
   push:
-    branches: [ master, main ]  # 你的主分支名
+    branches: [ master, main ]
   pull_request:
     branches: [ master, main ]
 
@@ -15,10 +15,11 @@ jobs:
         with:
           submodules: true  # 关键：clumsy 依赖子模块（WinDivert、iup）
 
+      # 👇 这里是修复点：替换失效的 Action + 改用正确写法
       - name: 安装 Zig 0.9.1
-        uses: fang2hou/setup-zig@v1
+        uses: mlugg/setup-zig@v1
         with:
-          zig-version: 0.9.1
+          version: 0.9.1
 
       - name: 编译（64位 Release）
         run: |
