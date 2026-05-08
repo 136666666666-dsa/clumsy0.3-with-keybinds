@@ -1,57 +1,52 @@
-name: Build Clumsy EXE
+name: Build clumsy.exe
 
 on:
   push:
-    branches:
-      - main
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
   workflow_dispatch:  # 允许手动触发
 
 jobs:
-  build:
+  build-windows:
     runs-on: windows-latest
-
     steps:
-      # 1. 检出源码
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      # 1. 检出代码
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-      # 2. 显示当前目录和文件（调试用）
-      - name: List repository files
-        run: dir /s
-
-      # 3. 设置 MSBuild
+      # 2. 设置 MSBuild（Visual Studio 编译环境）
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v1.1
 
-      # 4. 编译 Clumsy
+      # 3. 编译 Clumsy
       - name: Build Clumsy Release x64
         run: |
-          echo "Compiling Clumsy..."
-          # 如果 Clumsy.sln 在仓库根目录就直接写 Clumsy.sln
+          echo "Building Clumsy..."
+          # 如果 Clumsy.sln 在仓库根目录，直接写 Clumsy.sln
           msbuild Clumsy.sln /p:Configuration=Release /p:Platform=x64 /m
-          echo "Build completed."
-          # 列出 Release 文件夹里的内容确认 exe
+          echo "Build finished."
+          # 查看生成的文件夹内容确认 exe
           dir Clumsy\x64\Release
 
-      # 5. 创建打包文件夹并复制 exe
+      # 4. 打包 exe
       - name: Prepare package
         run: |
           mkdir package
+          # 修改路径到实际生成的 exe
           copy Clumsy\x64\Release\Clumsy.exe package\
-          # 如果你有 DLL（如 wpcap.dll 和 packet.dll）可以复制
-          if exist "C:\Windows\System32\wpcap.dll" copy "C:\Windows\System32\wpcap.dll" package\
-          if exist "C:\Windows\System32\packet.dll" copy "C:\Windows\System32\packet.dll" package\
-          dir package  # 查看包内容确认
+          dir package
 
-      # 6. 压缩成 ZIP
+      # 5. 压缩成 zip
       - name: Compress package
         run: |
           powershell Compress-Archive -Path package\* -DestinationPath clumsy-release.zip
-          dir  # 查看生成的 zip 文件
+          dir  # 查看 zip 文件
 
-      # 7. 上传产物
+      # 6. 上传产物
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: clumsy-release
+          name: clumsy-win64
           path: clumsy-release.zip
