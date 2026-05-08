@@ -11,7 +11,7 @@ env:
 
 jobs:
   build-windows:
-    runs-on: windows-2019  # 关键：必须用旧版Windows环境
+    runs-on: windows-latest  # 用最新版，不用排队！
     steps:
       - uses: actions/checkout@v4
         with:
@@ -22,10 +22,16 @@ jobs:
         with:
           version: 0.9.1
 
-      - name: 编译 64位 Release
-        run: zig build release -Dtarget=x86_64-windows  # 修复命令
+      # 👇 修复 Windows Kit 路径错误（核心！）
+      - name: 修复 Windows SDK 路径
+        run: |
+          echo "WINDOWS_KIT_BIN_ROOT=C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x64" >> $env:GITHUB_ENV
 
-      - name: 上传成品
+      # 👇 正确编译命令
+      - name: 编译 64位 Release
+        run: zig build -Dtarget=x86_64-windows -Drelease-fast
+
+      - name: 上传 exe
         uses: actions/upload-artifact@v4
         with:
           name: clumsy-win64-exe
