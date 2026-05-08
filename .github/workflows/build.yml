@@ -16,33 +16,35 @@ jobs:
         with:
           submodules: recursive
 
-      # 2. 设置 MSBuild（Visual Studio 编译环境）
-      - name: Setup MSBuild
+      # 2. 安装 .NET Framework 编译器 csc
+      - name: Setup MSBuild Tools
         uses: microsoft/setup-msbuild@v1.1
 
-      # 3. 编译 Clumsy
-      - name: Build Clumsy Release x64
+      # 3. 编译所有 C# 源码文件
+      - name: Compile Clumsy.exe
         run: |
-          echo "Building Clumsy..."
-          # 如果 Clumsy.sln 在仓库根目录，直接写 Clumsy.sln
-          msbuild Clumsy.sln /p:Configuration=Release /p:Platform=x64 /m
-          echo "Build finished."
-          # 查看生成的文件夹内容确认 exe
-          dir Clumsy\x64\Release
+          echo "Compiling Clumsy..."
+          mkdir build
+          # 假设所有 .cs 文件都在根目录或子目录 Clumsy/
+          # /target:exe 生成可执行文件
+          # /out:build\Clumsy.exe 输出到 build 文件夹
+          dir /s *.cs
+          csc /target:exe /out:build\Clumsy.exe **\*.cs
+          echo "Compilation finished."
+          dir build
 
       # 4. 打包 exe
       - name: Prepare package
         run: |
           mkdir package
-          # 修改路径到实际生成的 exe
-          copy Clumsy\x64\Release\Clumsy.exe package\
+          copy build\Clumsy.exe package\
           dir package
 
       # 5. 压缩成 zip
       - name: Compress package
         run: |
           powershell Compress-Archive -Path package\* -DestinationPath clumsy-release.zip
-          dir  # 查看 zip 文件
+          dir
 
       # 6. 上传产物
       - name: Upload artifact
