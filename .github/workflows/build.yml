@@ -11,7 +11,7 @@ env:
 
 jobs:
   build-windows:
-    runs-on: windows-latest
+    runs-on: windows-2022  # 这个版本自带正确的 Windows SDK
     steps:
       - uses: actions/checkout@v4
         with:
@@ -23,16 +23,19 @@ jobs:
           version: 0.9.1
 
       # ==============================================
-      # 👇 👇 核心修复：直接删除 Windows Kit 强制检查！
+      # 👇 一键修复 build.zig 里所有错误路径
       # ==============================================
-      - name: 永久修复 panic 错误
+      - name: 修复 Windows Kit 路径
         run: |
-          (Get-Content build.zig) -replace '^.*windows_kit_bin_root.*panic.*$', '// 自动修复：移除Windows Kit检查' | Set-Content build.zig
+          (Get-Content build.zig) `
+            -replace '10.0.19041.0', '10.0.22621.0' `
+            -replace 'windows_kit_bin_root.*', 'const windows_kit_bin_root = "C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.22621.0\\x64";' `
+          | Set-Content build.zig
 
-      - name: 编译
+      - name: 编译 64位 Release
         run: zig build -Dtarget=x86_64-windows -Drelease-fast
 
-      - name: 上传exe
+      - name: 上传成品
         uses: actions/upload-artifact@v4
         with:
           name: clumsy-win64-exe
