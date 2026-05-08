@@ -16,25 +16,24 @@ jobs:
         with:
           submodules: recursive
 
-      # 2. 安装 .NET Framework 编译器 csc
+      # 2. 安装 MSBuild 工具（包含 csc 编译器）
       - name: Setup MSBuild Tools
         uses: microsoft/setup-msbuild@v1.1
 
       # 3. 编译所有 C# 源码文件
       - name: Compile Clumsy.exe
+        shell: cmd
         run: |
-          echo "Compiling Clumsy..."
+          echo Compiling Clumsy...
           mkdir build
-          # 假设所有 .cs 文件都在根目录或子目录 Clumsy/
-          # /target:exe 生成可执行文件
-          # /out:build\Clumsy.exe 输出到 build 文件夹
-          dir /s *.cs
+          rem 使用 **\*.cs 匹配所有子目录的 .cs 文件
           csc /target:exe /out:build\Clumsy.exe **\*.cs
-          echo "Compilation finished."
+          echo Compilation finished.
           dir build
 
       # 4. 打包 exe
       - name: Prepare package
+        shell: cmd
         run: |
           mkdir package
           copy build\Clumsy.exe package\
@@ -42,8 +41,9 @@ jobs:
 
       # 5. 压缩成 zip
       - name: Compress package
+        shell: powershell
         run: |
-          powershell Compress-Archive -Path package\* -DestinationPath clumsy-release.zip
+          Compress-Archive -Path package\* -DestinationPath clumsy-release.zip
           dir
 
       # 6. 上传产物
