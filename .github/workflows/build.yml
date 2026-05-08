@@ -1,0 +1,32 @@
+name: Build clumsy.exe
+
+on:
+  push:
+    branches: [ master, main ]  # 你的主分支名
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: 拉取源码
+        uses: actions/checkout@v4
+        with:
+          submodules: true  # 关键：clumsy 依赖子模块（WinDivert、iup）
+
+      - name: 安装 Zig 0.9.1
+        uses: fang2hou/setup-zig@v1
+        with:
+          zig-version: 0.9.1
+
+      - name: 编译（64位 Release）
+        run: |
+          zig build -Dconf=Release -Darch=x64
+          dir .\zig-out\bin
+
+      - name: 上传 exe 制品
+        uses: actions/upload-artifact@v4
+        with:
+          name: clumsy-win64-exe
+          path: zig-out/bin/clumsy.exe
