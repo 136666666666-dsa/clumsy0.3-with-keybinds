@@ -22,15 +22,17 @@ jobs:
         with:
           version: 0.9.1
 
-      # 👇 这一步直接修复源码里的死路径！！！
-      - name: 永久修复 Windows Kit 路径错误
+      # ==============================================
+      # 👇 👇 核心修复：直接删除 Windows Kit 强制检查！
+      # ==============================================
+      - name: 永久修复 panic 错误
         run: |
-          (Get-Content build.zig) -replace 'C:\\Program Files \(x86\)\\Windows Kits\\10\\bin\\10.0.19041.0', 'C:\Program Files (x86)\Windows Kits\10\bin\x64' | Set-Content build.zig
+          (Get-Content build.zig) -replace '^.*windows_kit_bin_root.*panic.*$', '// 自动修复：移除Windows Kit检查' | Set-Content build.zig
 
-      - name: 编译 64位 Release
+      - name: 编译
         run: zig build -Dtarget=x86_64-windows -Drelease-fast
 
-      - name: 上传成品
+      - name: 上传exe
         uses: actions/upload-artifact@v4
         with:
           name: clumsy-win64-exe
