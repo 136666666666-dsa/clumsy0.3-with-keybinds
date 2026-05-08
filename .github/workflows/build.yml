@@ -1,42 +1,23 @@
-name: Build clumsy.exe
+name: Build Clumsy
 
 on:
   push:
-    branches: [ master, main ]
+    branches: [ main ]
   pull_request:
-    branches: [ master, main ]
-
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    branches: [ main ]
 
 jobs:
-  build-windows:
-    runs-on: windows-2022  # 这个版本自带正确的 Windows SDK
+  build:
+    runs-on: windows-latest
+    
     steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: 安装 Zig 0.9.1
-        uses: mlugg/setup-zig@v1
-        with:
-          version: 0.9.1
-
-      # ==============================================
-      # 👇 一键修复 build.zig 里所有错误路径
-      # ==============================================
-      - name: 修复 Windows Kit 路径
-        run: |
-          (Get-Content build.zig) `
-            -replace '10.0.19041.0', '10.0.22621.0' `
-            -replace 'windows_kit_bin_root.*', 'const windows_kit_bin_root = "C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.22621.0\\x64";' `
-          | Set-Content build.zig
-
-      - name: 编译 64位 Release
-        run: zig build -Dtarget=x86_64-windows -Drelease-fast
-
-      - name: 上传成品
-        uses: actions/upload-artifact@v4
-        with:
-          name: clumsy-win64-exe
-          path: zig-out/bin/clumsy.exe
+    - uses: actions/checkout@v3
+    - name: Setup Visual Studio
+      uses: microsoft/setup-msbuild@v1.1
+    - name: Build solution
+      run: msbuild Clumsy.sln /p:Configuration=Release
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: Clumsy-release
+        path: '**/Release/*.exe'
