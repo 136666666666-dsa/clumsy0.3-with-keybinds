@@ -11,12 +11,11 @@ env:
 
 jobs:
   build-windows:
-    runs-on: windows-latest
+    runs-on: windows-2019  # 关键：必须用旧版Windows环境
     steps:
-      - name: 拉取源码
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          submodules: true
+          submodules: recursive
 
       - name: 安装 Zig 0.9.1
         uses: mlugg/setup-zig@v1
@@ -24,10 +23,10 @@ jobs:
           version: 0.9.1
 
       - name: 编译 64位 Release
-        run: zig build -Dtarget=x86_64-windows -Drelease-fast
+        run: zig build release -Dtarget=x86_64-windows  # 修复命令
 
-      - name: 上传exe制品
-        uses: actions/upload-artifact@v4  # 这里修复了！
+      - name: 上传成品
+        uses: actions/upload-artifact@v4
         with:
           name: clumsy-win64-exe
           path: zig-out/bin/clumsy.exe
